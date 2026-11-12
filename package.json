@@ -1,0 +1,8 @@
+{
+  "name": "catch-a-scene",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Learn English expressions from movie scenes and song lyrics.",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="영화 대사와 노래 속 영어 표현을 맥락과 함께 익히는 학습 앱">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}*,*::before,*::after{box-sizing:border-box}body{margin:0;font:14px/1.5 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Catch a Scene</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#FFD23F">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a home with the search box in the middle, video lessons on the left and the quiz on the right; result, learn and quiz views share one column. */
+:root{
+  --bg:#F3F4F7; --surface:#FFFFFF; --ink:#18213A; --muted:#5B6478; --line:#DCE0E8; --soft:#EBEDF3;
+  --marker:#FFD23F; --marker-ink:#18213A; --here:#FFF3C4;
+  --screen:#0E1322; --screen-fg:#F4F6FB;
+  --good:#1D7F53; --good-bg:#E3F4EB; --bad:#B4410F; --bad-bg:#FBEBE2;
+  --f-display:"Bricolage Grotesque","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1220; --surface:#161B2B; --ink:#E7EAF2; --muted:#9AA3B8; --line:#2A3146; --soft:#1E2436;
+  --here:#3A3216; --screen:#05070D; --good:#58C893; --good-bg:#16302A; --bad:#F3936A; --bad-bg:#37201A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1220; --surface:#161B2B; --ink:#E7EAF2; --muted:#9AA3B8; --line:#2A3146; --soft:#1E2436;
+  --here:#3A3216; --screen:#05070D; --good:#58C893; --good-bg:#16302A; --bad:#F3936A; --bad-bg:#37201A; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1200px;margin:0 auto;padding-block:16px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--marker);outline-offset:2px}
+a{color:inherit}
+mark{background:var(--marker);color:var(--marker-ink);border-radius:3px;padding:0 3px;font-weight:600}
+
+/* top bar */
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+.logo{font-family:var(--f-display);font-weight:800;font-size:24px;letter-spacing:-.02em;text-decoration:none;display:flex;align-items:center;gap:8px}
+.logo .dot{width:14px;height:14px;border-radius:50%;background:var(--marker);box-shadow:0 0 0 3px var(--ink) inset}
+.logo span{background:linear-gradient(transparent 58%,var(--marker) 58%);padding:0 2px;color:var(--ink)}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{text-decoration:none;font-size:14px;font-weight:500;padding:7px 12px;border-radius:999px;color:var(--muted)}
+nav a:hover{color:var(--ink);background:var(--soft)}
+nav a[aria-current="page"]{color:var(--ink);background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.count{font-family:var(--f-mono);font-size:11px;background:var(--marker);color:var(--marker-ink);border-radius:999px;padding:1px 7px;margin-left:4px}
+
+/* generic */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.pad{padding:20px;display:grid;gap:14px;align-content:start}
+.label{font-size:12px;font-weight:600;letter-spacing:.01em;color:var(--muted)}
+h1,h2,h3{font-family:var(--f-display);margin:0;letter-spacing:-.015em;text-wrap:balance}
+h2{font-size:20px;font-weight:700}
+h3{font-size:16px;font-weight:700}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--ink)}
+.btn.solid{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn.mark{background:var(--marker);color:var(--marker-ink);border-color:var(--marker);font-weight:600}
+.btn[aria-pressed="true"]{background:var(--marker);color:var(--marker-ink);border-color:var(--marker)}
+.btn:disabled{opacity:.5;cursor:default}
+.link{background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-size:14px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;text-align:left}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--muted);white-space:nowrap}
+.empty{color:var(--muted);font-size:14px}
+.note{font-size:13px;color:var(--muted)}
+.err{color:var(--bad);font-size:14px}
+
+/* home */
+.home{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.55fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.home{grid-template-columns:minmax(0,1fr)}.home .search{order:-1}}
+.search{padding:24px;display:grid;gap:16px}
+.search h1{font-size:clamp(26px,3.4vw,36px);font-weight:800;line-height:1.1}
+.search h1 span{background:linear-gradient(transparent 60%,var(--marker) 60%);color:var(--ink)}
+.tabs{display:inline-flex;background:var(--soft);border-radius:12px;padding:4px;gap:4px;justify-self:start}
+.tabs button{border:0;background:none;border-radius:9px;padding:8px 16px;cursor:pointer;font-weight:500;font-size:14px;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.field{display:grid;gap:5px;font-size:13px;font-weight:600}
+.field em{font-style:normal;font-weight:400;color:var(--muted)}
+.field input,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:11px 12px;font-size:15px;min-width:0;resize:vertical}
+.field textarea{min-height:84px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.status{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--ink);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-state{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ai-state i{width:8px;height:8px;border-radius:50%;background:var(--line);display:inline-block}
+.ai-state.on i{background:var(--good)}
+.examples{display:flex;flex-wrap:wrap;gap:8px}
+
+.side-card h2{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mini-scenes{display:grid;gap:10px}
+.mini{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;align-items:center;text-align:left;border:0;background:none;padding:0;cursor:pointer}
+.mini:hover b{text-decoration:underline}
+.mini b{font-size:14px;font-weight:600;display:block}
+.mini small{font-size:12px;color:var(--muted)}
+.thumb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:8px;overflow:hidden;
+  background:radial-gradient(70% 60% at var(--sx,70%) 0%,rgba(255,255,255,.22),transparent 70%),linear-gradient(160deg,var(--p1,#2B3A67),var(--p2,#0E1322))}
+.thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.thumb .x{position:absolute;left:8px;bottom:6px;font-family:var(--f-display);font-weight:700;color:#fff;font-size:12px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.saved-list{list-style:none;margin:0;padding:0;display:grid}
+.saved-list li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.saved-list li:last-child{border-bottom:0}
+.saved-list b{font-weight:600}
+.saved-list button.open{border:0;background:none;padding:0;text-align:left;cursor:pointer;min-width:0}
+.saved-list button.open:hover b{text-decoration:underline}
+.saved-list .x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;flex:none}
+.big-num{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1}
+
+/* result */
+.result{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.result{grid-template-columns:minmax(0,1fr)}}
+.col{display:grid;gap:20px;min-width:0}
+.work h1{font-size:clamp(24px,3vw,32px);font-weight:800}
+.quote{font-family:var(--f-display);font-weight:500;font-size:20px;line-height:1.4;border-left:4px solid var(--marker);padding-left:14px}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 16px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0}
+.meaning{background:var(--here);border-radius:12px;padding:14px 16px;font-weight:500}
+.conf{font-family:var(--f-mono);font-size:11px;border-radius:999px;padding:2px 9px;border:1px solid var(--line)}
+.conf.high{color:var(--good);border-color:var(--good)}
+.conf.low{color:var(--bad);border-color:var(--bad)}
+.parts{display:grid;gap:12px}
+.part{border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:8px}
+.part .ref{font-family:var(--f-display);font-weight:700}
+.dev{display:grid;gap:2px;font-size:14px;padding:8px 10px;background:var(--soft);border-radius:8px}
+.dev b{font-weight:600}
+.expr-chips{display:flex;flex-wrap:wrap;gap:8px}
+.expr-detail{display:grid;gap:12px}
+.expr-title{font-family:var(--f-display);font-weight:800;font-size:clamp(22px,2.6vw,28px);line-height:1.15}
+.expr-title span{background:linear-gradient(transparent 60%,var(--marker) 60%);color:var(--ink)}
+.means{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.means li{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:3px}
+.means li.here{background:var(--here);border-color:transparent}
+.means .ex{font-size:14px}
+.means .ko{font-size:13px;color:var(--muted)}
+.media{display:grid;gap:10px}
+.media-item{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px}
+.media-item .head{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.media-item b{font-weight:600}
+
+/* learn */
+.learn{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.learn{grid-template-columns:minmax(0,1fr)}}
+.stage{background:var(--screen);border-radius:16px;overflow:hidden;color:var(--screen-fg)}
+.screen{position:relative;aspect-ratio:16/9;max-width:100%;background:var(--screen)}
+.screen #yt,.screen iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.poster{position:absolute;inset:0;display:grid;align-content:end;gap:8px;padding:clamp(16px,4vw,32px);overflow:hidden;
+  background:radial-gradient(60% 45% at 50% 108%,rgba(255,240,200,.3),transparent 70%),radial-gradient(38% 70% at var(--sx,72%) -10%,rgba(255,255,255,.2),transparent 70%),linear-gradient(165deg,var(--p1,#2B3A67),var(--p2,#0E1322))}
+.poster::before,.poster::after{content:"";position:absolute;left:0;right:0;height:7%;background:#000}
+.poster::before{top:0}.poster::after{bottom:0}
+.poster .k{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);position:relative}
+.poster .q{position:relative;font-family:var(--f-display);font-weight:800;font-size:clamp(20px,4vw,38px);line-height:1.1;color:#fff;max-width:22ch;margin:0}
+.poster .f{position:relative;font-size:13px;color:rgba(255,255,255,.88);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:calc(7% - 2px)}
+.poster .f a{color:#fff;font-weight:600;background:rgba(0,0,0,.45);padding:5px 10px;border-radius:6px;text-decoration:none}
+.caption{padding:14px 18px;display:grid;gap:4px;text-align:center;border-top:1px solid #1f2740;min-height:84px;align-content:center}
+.cap-en{font-family:var(--f-display);font-weight:500;font-size:clamp(18px,2.4vw,22px)}
+.cap-ko{font-size:14px;color:#AEB8D2}
+.controls{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;background:#0A0E1A;align-items:center}
+.cbtn{font-size:13px;font-weight:500;color:var(--screen-fg);background:#1A2238;border:1px solid #2A3452;border-radius:8px;padding:7px 12px;cursor:pointer}
+.cbtn:hover{background:#222C48}
+.cbtn.primary{background:var(--marker);color:var(--marker-ink);border-color:var(--marker);font-weight:600}
+.cbtn[aria-pressed="true"]{background:#2F3B60;border-color:#5466A0}
+.controls .sp{flex:1}
+.time{font-family:var(--f-mono);font-size:12px;color:#8C97B6;font-variant-numeric:tabular-nums}
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.lib-card{display:grid;gap:8px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:10px;cursor:pointer}
+.lib-card:hover{border-color:var(--ink)}
+.lib-card[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--ink);border-color:var(--ink)}
+.lib-card b{font-weight:600;font-size:14px}
+.lib-card small{color:var(--muted);font-size:12px}
+
+/* quiz */
+.quizwrap{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:960px){.quizwrap{grid-template-columns:minmax(0,1fr)}}
+.qprog{height:6px;background:var(--soft);border-radius:999px;overflow:hidden}
+.qprog i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.qq{font-family:var(--f-display);font-weight:500;font-size:clamp(19px,2.4vw,23px);line-height:1.4}
+.blank{display:inline-block;min-width:5ch;border-bottom:2px solid var(--marker)}
+.choices{display:grid;gap:8px}
+.choice{text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.choice:hover:not(:disabled){border-color:var(--ink)}
+.choice.right{background:var(--good-bg);border-color:var(--good);color:var(--good);font-weight:600}
+.choice.wrong{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.choice:disabled{cursor:default}
+.fb{font-weight:600;font-size:14px}
+.fb.good{color:var(--good)}.fb.bad{color:var(--bad)}
+.score{font-family:var(--f-display);font-weight:800;font-size:56px;line-height:1}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#home" aria-label="Catch a Scene 홈"><i class="dot" aria-hidden="true"></i>Catch a <span>Scene</span></a>
+    <nav aria-label="주요 화면">
+      <a href="#home" data-nav="home">홈</a>
+      <a href="#learn" data-nav="learn">영상으로 배우기</a>
+      <a href="#quiz" data-nav="quiz">퀴즈<span class="count" id="navCount">0</span></a>
+    </nav>
+  </header>
+  <main id="view" aria-live="polite"></main>
+</div>
+
+<script>
+/* ============ 기본 도구 ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = s => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const hash = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); };
+const norm = s => String(s || '').toLowerCase().replace(/[’']/g, "'").replace(/\b(someone|somebody|something|one|oneself)('s)?\b/g, '').replace(/[~()]/g, ' ').replace(/\s+/g, ' ').trim();
+const ytId = u => { const m = String(u || '').match(/(?:youtu\.be\/|v=|\/embed\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/); return m ? m[1] : null; };
+const ytSearch = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+const playphrase = q => 'https://www.playphrase.me/#/search?q=' + encodeURIComponent(q);
+const youglish = q => 'https://youglish.com/pronounce/' + encodeURIComponent(q) + '/english';
+const cleanExpr = e => String(e || '').replace(/\(.*?\)/g, ' ').replace(/~/g, ' ').replace(/\b(someone's|somebody's|one's)\b/gi, 'his').replace(/\s+/g, ' ').trim();
+function highlight(text, expr){
+  const t = esc(text); const key = cleanExpr(expr).replace(/\bhis\b/, '');
+  const words = key.split(' ').filter(w => w.length > 1).map(w => esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/&#39;/g, "(?:&#39;|’)"));
+  if (!words.length) return t;
+  const rx = new RegExp(words.join("[\\w&#;’' ]{0,14}?"), 'i');
+  return t.replace(rx, m => `<mark>${m}</mark>`);
+}
+
+/* ============ 영상 라이브러리 (공식 채널 영상만) ============ */
+const SCENES = [
+  { id:'jobs-dots', videoId:'UF8uR6Z6KLc', start:200, end:320, tag:'연설 · Stanford', who:'Steve Jobs, 2005 스탠퍼드 졸업식', title:'점들은 나중에 이어진다', poster:['#1F4E5F','#08171C','70%'],
+    expr:'connect the dots', meaning:'흩어진 일들 사이의 연결고리를 찾다', keyLine:'connect the dots', keyKo:'점들을 잇다',
+    note:'숫자 점을 이어 그림을 완성하는 놀이에서 나온 말이에요. 연설에서는 "지나고 나서야 경험들이 하나로 이어진다"는 뜻으로 써요.',
+    examples:[['The detective finally connected the dots.','형사는 마침내 단서들을 이어 맞췄다.'],['Looking back, I can connect the dots in my career.','돌아보니 내 경력의 점들이 이어져 보여.']] },
+  { id:'jobs-hungry', videoId:'UF8uR6Z6KLc', start:770, end:880, tag:'연설 · Stanford', who:'Steve Jobs, 2005 스탠퍼드 졸업식', title:'계속 갈망하라', poster:['#5A3A1E','#1A0F07','35%'],
+    expr:'stay hungry', meaning:'(안주하지 않고) 계속 더 원하고 도전하다', keyLine:'Stay hungry. Stay foolish.', keyKo:'계속 갈망하라. 계속 무모하라.',
+    note:'hungry는 배고픔이 아니라 "더 원하는 마음"이에요. foolish도 "어리석다"보다 남 눈치 보지 않고 도전하는 쪽에 가까워요.',
+    examples:[['Even after winning, the team stayed hungry.','우승하고도 그 팀은 안주하지 않았다.'],['Stay hungry and keep learning.','안주하지 말고 계속 배워.']] },
+  { id:'urban-nighter', videoId:'arj7oStGLkU', start:20, end:100, tag:'TED · Tim Urban', who:'Inside the Mind of a Master Procrastinator', title:'밤새서 끝낸 논문', poster:['#3A2E6E','#120F24','78%'],
+    expr:'all-nighter', meaning:'밤샘 (pull an all-nighter = 밤을 새우다)', keyLine:'two all-nighters', keyKo:'밤샘 두 번',
+    note:'시험이나 마감 때문에 잠을 안 자고 밤새 일하는 걸 말해요. 동사는 pull을 써요.',
+    examples:[['I pulled an all-nighter before the exam.','시험 전에 밤을 새웠어.'],['No more all-nighters this semester.','이번 학기엔 밤샘 그만.']] },
+  { id:'urban-monkey', videoId:'arj7oStGLkU', start:230, end:290, tag:'TED · Tim Urban', who:'Inside the Mind of a Master Procrastinator', title:'미루는 사람의 뇌', poster:['#0F5C5A','#06201F','30%'],
+    expr:'instant gratification', meaning:'즉각적인 만족 (당장 기분 좋은 것)', keyLine:'the Instant Gratification Monkey', keyKo:'당장의 즐거움만 좇는 원숭이',
+    note:'나중의 큰 보상보다 지금 당장의 즐거움을 고르는 심리예요. 쇼핑, SNS, 간식 얘기에 자주 나와요.',
+    examples:[['Social media is all about instant gratification.','SNS는 결국 즉각적인 만족이야.'],['Saving money means resisting instant gratification.','돈을 모으려면 당장의 만족을 참아야 해.']] },
+  { id:'cuddy-fake', videoId:'Ks-_Mh1QhMc', start:1150, end:1225, tag:'TED · Amy Cuddy', who:'Your Body Language May Shape Who You Are', title:'될 때까지 그런 척', poster:['#7A2E3B','#22090F','60%'],
+    expr:'fake it till you make it', meaning:'될 때까지 된 척하라 (자신감이 생길 때까지 그렇게 행동하라)', keyLine:'fake it till you become it', keyKo:'그 사람이 될 때까지 그런 척하라',
+    note:'원래 관용구는 "fake it till you make it"이에요. 강연자는 이를 "become it"으로 바꿔 마무리해요.',
+    examples:[['Nervous about the interview? Fake it till you make it.','면접 떨려? 될 때까지 자신 있는 척해.'],['I just faked it till I made it.','그냥 된 척하다 보니 됐어.']] },
+  { id:'grit-marathon', videoId:'H14bBuluwB8', start:175, end:225, tag:'TED · Angela Duckworth', who:'Grit: The Power of Passion and Perseverance', title:'인생은 마라톤', poster:['#2D5A2A','#0B1A0A','55%'],
+    expr:'a marathon, not a sprint', meaning:'단기전이 아니라 장기전이다', keyLine:'a marathon, not a sprint', keyKo:'단거리가 아니라 마라톤',
+    note:'빨리 끝내는 일이 아니라 꾸준히 오래 버텨야 하는 일을 말할 때 써요. grit(끈기)을 설명하는 대목이에요.',
+    examples:[['Learning a language is a marathon, not a sprint.','언어 공부는 단거리가 아니라 마라톤이야.'],['Pace yourself. This project is a marathon.','페이스 조절해. 이 프로젝트는 장기전이야.']] },
+  { id:'swift-shake', videoId:'nfWlot6h_JM', start:40, end:80, tag:'뮤직비디오 · Taylor Swift', who:'Shake It Off (공식 뮤직비디오)', title:'털어버려', poster:['#B0466B','#2A0E1C','25%'],
+    expr:'shake it off', meaning:'(안 좋은 일이나 남의 말을) 털어버리다', keyLine:'Shake it off', keyKo:'털어버려',
+    note:'몸에 묻은 먼지를 털듯 기분 나쁜 일을 떨쳐낸다는 뜻이에요. 가사는 영상 자막(CC)으로 확인하세요.',
+    examples:[["It was just one bad game. Shake it off.",'한 경기 망친 것뿐이야. 털어버려.'],['She shook off the criticism.','그녀는 비판을 떨쳐냈다.']] },
+  { id:'pharrell-clap', videoId:'y6Sxv-sUYtM', start:40, end:95, tag:'뮤직비디오 · Pharrell Williams', who:'Happy (공식 뮤직비디오)', title:'다 같이 박수', poster:['#B07A1E','#2A1A05','40%'],
+    expr:'clap along', meaning:'(음악에 맞춰) 따라서 박수 치다', keyLine:'Clap along', keyKo:'박수 치며 따라 해',
+    note:'along은 "함께, 따라서"라는 뜻이라 sing along(따라 부르다), dance along처럼 쓰여요. 가사는 영상 자막(CC)으로 확인하세요.',
+    examples:[['Everyone clapped along to the music.','모두 음악에 맞춰 박수를 쳤다.'],["Sing along if you know the words!",'가사 알면 따라 불러요!']] },
+];
+
+/* 예시 결과: AI에 연결되지 않아도 기능을 볼 수 있게 미리 만든 해석 */
+const EXAMPLE = { mode:'movie', query:{ title:'엘리멘탈 (Elemental)', line:"I've been trying to fill my father's shoes, but I never asked what I wanted to do." }, example:true, result:{
+  work:{ title:'엘리멘탈 (Elemental)', year:'2023', by:'픽사 · 감독 피터 손', summary:'불, 물, 흙, 공기가 함께 사는 도시에서, 이민자 가정의 딸인 불 원소 앰버가 부모님 가게를 물려받는 길과 자신의 꿈 사이에서 고민하는 이야기예요.' },
+  context:{ known:true, scene:'영화 후반, 앰버가 그동안 감춰 온 진짜 마음을 털어놓는 대목이에요. 아버지의 가게를 이어받는 것을 당연한 의무로 여겨 왔지만, 그게 정말 자기가 원하는 일이었는지 처음으로 돌아보게 돼요.', speaker:'앰버 (주인공)', tone:'고백, 깨달음, 죄책감이 섞인 진지한 말투', meaning:'아빠의 뒤를 이으려고 애써 왔는데, 정작 내가 뭘 하고 싶은지는 한 번도 나 자신에게 물어본 적이 없어.', note:'대사가 나오는 정확한 장면 위치는 영화로 확인해 보세요.' },
+  expressions:[
+    { expr:"fill someone's shoes", type:'관용구', meaning_here:'아버지의 자리와 역할을 이어받아 그만큼 해내다', note:'"in someone\'s shoes"(그 사람 입장이 되어)와 헷갈리기 쉬워요.',
+      all_meanings:[ { meaning:'누군가의 자리나 역할을 대신 맡아 그 사람만큼 잘 해내다', ex_en:'No one can fill her shoes.', ex_ko:'아무도 그녀의 자리를 대신할 수 없어.', here:true },
+                     { meaning:'(have big shoes to fill) 전임자가 대단해서 이어받기 부담스러운 자리', ex_en:'The new coach has big shoes to fill.', ex_ko:'새 감독은 이어받을 자리가 너무 커.' } ] },
+    { expr:"I've been trying to", type:'문법', meaning_here:'(오래전부터 지금까지 계속) ~하려고 애써 왔다',
+      all_meanings:[ { meaning:'과거부터 지금까지 이어지는 노력이나 시도 (현재완료진행)', ex_en:"I've been trying to call you all day.", ex_ko:'하루 종일 너한테 전화하려고 했어.', here:true } ] },
+    { expr:'ask (yourself) what you want', type:'표현', meaning_here:'스스로에게 무엇을 원하는지 묻다, 자기 마음을 돌아보다',
+      all_meanings:[ { meaning:'자기 자신에게 진짜 원하는 것을 묻다', ex_en:'Ask yourself what you really want.', ex_ko:'네가 진짜 원하는 게 뭔지 스스로 물어봐.', here:true },
+                     { meaning:'상대에게 원하는 것을 묻다', ex_en:'Did you ask him what he wanted for dinner?', ex_ko:'저녁 뭐 먹고 싶은지 걔한테 물어봤어?' } ] }
+  ],
+  related_media:[
+    { type:'스포츠 뉴스', title:'스타 선수나 감독의 후임 소개', situation:'"big shoes to fill"은 은퇴한 스타의 자리를 이어받는 사람을 소개할 때 자주 쓰여요.', youtube_url:'' },
+    { type:'연설', title:'취임 연설', situation:'전임자의 업적을 언급하며 "그 자리를 채우기는 쉽지 않다"고 겸손을 표할 때 쓰여요.', youtube_url:'' }
+  ],
+  confidence:'medium', caveat:'미리 만든 예시 결과예요. 실제로 입력하면 AI가 작품 정보를 찾아 새로 해석해요.'
+}};
+
+const FALLBACK_POOL = [
+  ['break the ice','어색한 분위기를 깨다'],['hit the books','열심히 공부하다'],['under the weather','몸이 좀 안 좋은'],
+  ['call it a day','오늘은 그만하다'],['piece of cake','아주 쉬운 일'],['on the same page','같은 생각인'],
+  ['cut corners','대충 하다, 절차를 생략하다'],['the last straw','더 이상 참을 수 없게 만드는 마지막 일'],
+  ['hang in there','조금만 버텨'],['spill the beans','비밀을 털어놓다'],['take a rain check','다음으로 미루다'],['once in a blue moon','아주 가끔']
+];
+
+/* ============ 저장소 (이 브라우저) ============ */
+const Store = {
+  items:[], subs:new Set(), key:'cas-items-v1',
+  load(){ try { this.items = JSON.parse(localStorage.getItem(this.key) || '[]'); } catch (e) { this.items = []; } },
+  save(){ try { localStorage.setItem(this.key, JSON.stringify(this.items)); } catch (e) {} },
+  emit(){ this.subs.forEach(f => f()); },
+  init(){ this.load(); this.emit(); },
+  list(kind){ return this.items.filter(i => i.kind === kind).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); },
+  has(id){ return this.items.some(i => i.id === id); },
+  get(id){ return this.items.find(i => i.id === id); },
+  async put(id, data){
+    this.items = this.items.filter(i => i.id !== id).concat(Object.assign({ id }, data, { createdAt: Date.now() }));
+    this.save(); this.emit(); return true;
+  },
+  async remove(id){ this.items = this.items.filter(i => i.id !== id); this.save(); this.emit(); }
+};
+const exprId = e => 'e-' + hash(norm(e.expr || e));
+async function saveExpr(e, source){
+  const first = (e.all_meanings || []).find(m => m.here) || (e.all_meanings || [])[0] || {};
+  await Store.put(exprId(e), { kind:'expr', expr:e.expr, meaning:e.meaning_here || e.meaning || first.meaning || '', ex_en:first.ex_en || (e.examples && e.examples[0] && e.examples[0][0]) || '', ex_ko:first.ex_ko || (e.examples && e.examples[0] && e.examples[0][1]) || '', all_meanings:(e.all_meanings || []).slice(0, 6), source: source || '' });
+}
+
+/* ============ 연결 상태: 서버(api 폴더) ============ */
+const api = { ok:false, checked:false, key:false };
+const apiReady = (async () => {
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
+    const r = await fetch('api/verify?ids=', { signal: ctl.signal }); clearTimeout(t);
+    api.ok = r.ok && (r.headers.get('content-type') || '').includes('json');
+    if (api.ok) { const k = await fetch('api/ask').then(x => x.json()).catch(() => ({})); api.key = !!k.ready; }
+  } catch (e) { api.ok = false; }
+  api.checked = true; return api.ok;
+})();
+let aiMode = 'checking';
+(async () => {
+  await apiReady;
+  aiMode = api.ok ? (api.key ? 'server' : 'nokey') : 'none';
+  const el = $('#aiState'); if (el) renderAiState(el);
+})();
+function renderAiState(el){
+  const map = { checking:['AI 연결 확인 중', false], server:['AI 연결됨 · OpenAI', true], none:['AI 미연결 · 예시 결과로 둘러볼 수 있어요', false], nokey:['OpenAI 키 미설정 · README를 확인하세요', false] };
+  const [t, on] = map[aiMode]; el.className = 'ai-state' + (on ? ' on' : ''); el.innerHTML = `<i aria-hidden="true"></i>${esc(t)}`;
+}
+
+/* 영상 검사: 서버가 있으면 YouTube에 실제로 있는지, 퍼가기가 허용됐는지 확인 */
+const broken = new Set((() => { try { return JSON.parse(localStorage.getItem('cas-broken') || '[]'); } catch (e) { return []; } })());
+function markBroken(id){ broken.add(id); try { localStorage.setItem('cas-broken', JSON.stringify([...broken])); } catch (e) {} }
+const verified = {};
+async function verifyIds(ids){
+  ids = [...new Set(ids.filter(Boolean))].filter(id => !(id in verified));
+  if (!ids.length || !(await apiReady)) return;
+  try { const r = await fetch('api/verify?ids=' + ids.join(',')); const j = await r.json(); Object.assign(verified, j); } catch (e) {}
+}
+let libCheck = 'pending';
+(async () => {
+  if (!(await apiReady)) { libCheck = 'unavailable'; return; }
+  await verifyIds(SCENES.map(s => s.videoId));
+  SCENES.forEach(s => { const v = verified[s.videoId]; if (v && !v.ok && [401, 403, 404].includes(v.status)) markBroken(s.videoId); });
+  libCheck = 'done'; if (route() === 'learn' || route() === 'home') render();
+})();
+const playable = () => SCENES.filter(s => !broken.has(s.videoId));
+
+/* ============ AI 요청 ============ */
+const SHARED_EXPR_SCHEMA = `"expressions": [{"expr": "표현의 원형 (예: fill someone's shoes)", "type": "관용구|구동사|은어|비유|문법|표현", "meaning_here": "이 맥락에서의 뜻", "all_meanings": [{"meaning": "뜻", "ex_en": "짧은 영어 예문", "ex_ko": "예문 번역", "here": true}], "note": "헷갈리기 쉬운 점 (없으면 빈 문자열)"}],
+  "related_media": [{"type": "영화|드라마|노래|연설|뉴스|기타", "title": "작품 이름", "situation": "그 작품에서 이 표현이 같은 의미로 쓰인 상황 (대사 인용 없이 설명)", "expr": "해당 표현", "youtube_url": ""}],
+  "confidence": "high|medium|low",
+  "caveat": "확실하지 않은 점 (없으면 빈 문자열)"`;
+function moviePrompt(q, search){
+  return `너는 한국인 영어 학습자를 돕는 영화 대사 해설가다. 아래 영화와 대사를 분석해서 JSON 객체 하나로만 답하라.
+
+영화 제목: ${q.title}
+대사: ${q.line}
+
+규칙:
+- 모든 설명은 자연스러운 한국어로, 예문은 영어와 한국어 번역으로 쓴다.
+- 영화 줄거리와 이 대사가 나오는 장면을 아는 만큼 설명한다. 장면을 확실히 모르면 context.known을 false로 하고, 대사 자체의 의미와 영화 전체 흐름에서 추정되는 맥락을 "추정"이라고 밝혀서 쓴다. 모르는 사실을 지어내지 않는다.
+- 영화 대본의 다른 대사를 옮겨 적지 않는다. 사용자가 준 대사만 언급한다.
+- expressions에는 대사 속 관용구, 구동사, 은어, 비유, 꼭 알아야 할 문법 패턴을 모두 넣는다(2~6개). all_meanings에는 이 대사에서의 뜻(here: true)과 그 표현이 가진 다른 뜻을 빠짐없이 넣고, 뜻마다 예문을 하나씩 단다.
+- related_media에는 같은 표현이 이 대사와 같은 의미로 쓰인 다른 영화, 드라마, 노래, 연설을 3~5개 넣는다. 실제로 존재하고 확실한 것만 넣고, 확실하지 않으면 개수를 줄인다.
+${search ? '- 웹 검색으로 영화 정보와 장면 맥락을 확인하라. related_media의 youtube_url에는 검색 결과에서 실제로 확인한 YouTube 주소만 넣고, 확인하지 못했으면 빈 문자열로 둔다. 주소를 절대 지어내지 마라.' : '- youtube_url은 항상 빈 문자열로 둔다.'}
+
+JSON 형식:
+{
+  "work": {"title": "작품 제목 (원제 포함)", "year": "개봉 연도", "by": "감독 또는 제작사", "summary": "줄거리 2~3문장"},
+  "context": {"known": true, "scene": "이 대사가 나오는 장면과 앞뒤 상황", "speaker": "누가 누구에게 하는 말", "tone": "말투와 감정", "meaning": "대사 전체의 자연스러운 한국어 의미", "note": "확인이 필요한 점"},
+  ${SHARED_EXPR_SCHEMA}
+}`;
+}
+function songPrompt(q, search){
+  return `너는 한국인 영어 학습자를 돕는 팝송 가사 해설가다. 아래 노래를 분석해서 JSON 객체 하나로만 답하라.
+
+가수: ${q.artist}
+노래 제목: ${q.song}
+${q.part ? '사용자가 궁금해하는 구절: ' + q.part : '특정 구절 없음. 노래의 주요 부분을 골라 설명한다.'}
+
+규칙:
+- 저작권 때문에 가사를 옮겨 적지 않는다. 구절을 짚을 때는 한 번에 8단어 이하로만 인용하고, 응답 전체에서 가사 인용은 5번을 넘지 않는다. 나머지는 모두 자기 말로 풀어 쓴다.
+- 모든 설명은 자연스러운 한국어로, 예문은 직접 만든 영어 문장과 한국어 번역으로 쓴다.
+- background.confirmed에는 가수나 작사가가 인터뷰, 공식 발표 등으로 직접 밝힌 배경만 쓰고, background.interpretation에는 평론가나 팬들의 해석을 "해석"이라고 밝혀서 쓴다.
+- 가수의 사생활을 확인되지 않은 사실로 단정하지 않는다.
+- parts에는 노래의 핵심 부분 3~6개를 넣는다. 사용자가 준 구절이 있으면 그것을 맨 앞에 둔다. 각 부분의 비유, 은어, 시적 허용, 말장난, 구어체 축약, 일부러 틀린 문법 같은 표현을 devices에 넣고 정확한 의미와 그렇게 쓴 이유를 설명한다.
+- expressions에는 이 노래로 배울 만한 표현을 2~6개 넣고, all_meanings에 노래 속 뜻(here: true)과 다른 뜻을 빠짐없이, 뜻마다 예문을 단다.
+- related_media에는 같은 표현이 같은 의미로 쓰인 다른 노래, 영화, 드라마, 연설을 3~5개 넣는다. 확실한 것만 넣는다.
+- 노래를 잘 모르면 지어내지 말고 confidence를 low로 하고 caveat에 밝힌다.
+${search ? '- 웹 검색으로 발매 정보와 가수가 밝힌 배경을 확인하라. related_media의 youtube_url에는 검색 결과에서 실제로 확인한 공식 YouTube 주소만 넣고, 없으면 빈 문자열로 둔다. 주소를 절대 지어내지 마라.' : '- youtube_url은 항상 빈 문자열로 둔다.'}
+
+JSON 형식:
+{
+  "work": {"title": "노래 제목", "year": "발매 연도", "by": "가수 · 앨범", "summary": "노래 소개 2문장"},
+  "background": {"confirmed": "가수가 직접 밝힌 배경 (없으면 빈 문자열)", "interpretation": "평론가와 팬들의 해석"},
+  "overall": "노래 전체가 말하려는 것",
+  "hidden_meaning": "숨은 의미나 이중적인 의미",
+  "parts": [{"ref": "8단어 이하의 짧은 구절 또는 위치 (예: 2절 도입부)", "meaning": "그 부분의 의미", "why": "그 부분을 그렇게 쓴 이유와 배경", "devices": [{"type": "비유|은어|시적 허용|말장난|구어체 축약|문법 파괴", "expr": "해당 표현", "explain": "정확한 의미와 쓴 이유"}]}],
+  ${SHARED_EXPR_SCHEMA}
+}`;
+}
+function parseLoose(t){
+  t = String(t || '').trim();
+  try { return JSON.parse(t); } catch (e) {}
+  const f = t.match(/```(?:json)?\s*([\s\S]*?)```/); if (f) { try { return JSON.parse(f[1]); } catch (e) {} }
+  const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {} }
+  throw { code:'invalid_json' };
+}
+async function askAI(mode, q, { signal }){
+  if (!(await apiReady)) throw { code:'no_ai' };
+  if (!api.key) throw { code:'no_key' };
+  const prompt = mode === 'movie' ? moviePrompt(q, true) : songPrompt(q, true);
+  const r = await fetch('api/ask', { method:'POST', headers:{ 'content-type':'application/json' }, body: JSON.stringify({ prompt, search:true }), signal });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 501) throw { code:'no_key' };
+  if (r.status === 429) throw { code:'rate_limited' };
+  if (!r.ok) throw { code:'upstream_error', message: j.error };
+  return parseLoose(j.text);
+}
+const ERR = {
+  rate_limited:'요청이 많거나 OpenAI 사용 한도에 닿았어요. 잠시 후 다시 시도해 주세요.',
+  invalid_json:'답을 정리하지 못했어요. 다시 시도해 주세요.',
+  no_key:'서버에 OpenAI 키가 설정되지 않았어요. README 안내대로 OPENAI_API_KEY를 넣어 주세요.',
+  no_ai:'AI 서버에 연결되지 않았어요. 파일을 그냥 열면 해석 기능이 동작하지 않아요. README 안내대로 Vercel에 배포하거나 server.js로 실행해 주세요. 지금은 예시 결과로 기능을 둘러볼 수 있어요.'
+};
+function fixResult(mode, r){
+  r = r && typeof r === 'object' ? r : {};
+  const arr = x => Array.isArray(x) ? x : [];
+  r.work = r.work || {}; r.context = r.context || {}; r.background = r.background || {};
+  r.expressions = arr(r.expressions).filter(e => e && e.expr).map(e => Object.assign(e, { all_meanings: arr(e.all_meanings).filter(m => m && m.meaning) }));
+  r.related_media = arr(r.related_media).filter(m => m && (m.title || m.situation));
+  r.parts = arr(r.parts).filter(p => p && (p.meaning || p.ref)).map(p => Object.assign(p, { devices: arr(p.devices) }));
+  return r;
+}
+
+/* ============ 화면 전환 ============ */
+const VIEWS = ['home', 'learn', 'quiz', 'result'];
+const route = () => { const h = location.hash.replace('#', ''); return VIEWS.includes(h) ? h : 'home'; };
+let current = null;      // 지금 보고 있는 해석 {mode, query, result, savedId?, example?}
+let tab = 'movie';
+let busy = null;         // 진행 중인 요청 {ctl}
+let lastError = '';
+function render(){
+  const r = route();
+  if (r !== 'learn') stopPlayer();
+  document.querySelectorAll('[data-nav]').forEach(a => a.setAttribute('aria-current', a.dataset.nav === r ? 'page' : 'false'));
+  ({ home: renderHome, learn: renderLearn, quiz: renderQuiz, result: renderResult })[r]();
+}
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+Store.subs.add(() => {
+  $('#navCount').textContent = quizPool().length;
+  const r = route();
+  if (r === 'home') refreshHomeSide();
+  if (r === 'quiz' && !Q.active) renderQuiz();
+  if (r === 'result') refreshSaveStates();
+  if (r === 'learn') refreshSceneSave();
+});
+function go(h){ if (location.hash === '#' + h) render(); else location.hash = h; }
+
+/* ============ 홈 ============ */
+function thumb(s, cls = ''){
+  const [p1, p2, sx] = s.poster || ['#2B3A67', '#0E1322', '70%'];
+  return `<div class="thumb ${cls}" style="--p1:${p1};--p2:${p2};--sx:${sx}"><img alt="" loading="lazy" src="https://i.ytimg.com/vi/${esc(s.videoId)}/mqdefault.jpg"><span class="x">${esc(s.expr)}</span></div>`;
+}
+function renderHome(){
+  const v = $('#view');
+  v.innerHTML = `<div class="home">
+    <section class="panel pad side-card" aria-labelledby="hVideo">
+      <h2 id="hVideo">영상으로 배우기 <a class="link small" href="#learn">전체 보기</a></h2>
+      <p class="muted small">강연, 뮤직비디오 속 실제 장면에서 표현 하나씩 익혀요.</p>
+      <div class="mini-scenes" id="miniScenes"></div>
+    </section>
+
+    <section class="panel search" aria-labelledby="hSearch">
+      <h1 id="hSearch">그 장면, 무슨 <span>뜻</span>이었을까?</h1>
+      <div class="tabs" role="tablist" aria-label="검색 종류">
+        <button role="tab" id="tabMovie" aria-selected="${tab === 'movie'}" data-tab="movie">영화 대사</button>
+        <button role="tab" id="tabSong" aria-selected="${tab === 'song'}" data-tab="song">노래 가사</button>
+      </div>
+      <form id="searchForm" novalidate>
+        <div id="fieldsMovie" ${tab === 'movie' ? '' : 'hidden'} style="display:grid;gap:12px">
+          <label class="field" for="fTitle">영화 제목<input id="fTitle" maxlength="80" placeholder="예: 엘리멘탈 (Elemental)" autocomplete="off"></label>
+          <label class="field" for="fLine">대사 <em>궁금한 대사 한두 문장</em><textarea id="fLine" maxlength="300" placeholder="예: I've been trying to fill my father's shoes..."></textarea></label>
+        </div>
+        <div id="fieldsSong" ${tab === 'song' ? '' : 'hidden'} style="display:grid;gap:12px">
+          <div class="grid2">
+            <label class="field" for="fArtist">가수<input id="fArtist" maxlength="60" placeholder="예: Taylor Swift" autocomplete="off"></label>
+            <label class="field" for="fSong">노래 제목<input id="fSong" maxlength="80" placeholder="예: Shake It Off" autocomplete="off"></label>
+          </div>
+          <label class="field" for="fPart">궁금한 구절 <em>선택 · 가사 전체 말고 한두 줄만</em><input id="fPart" maxlength="120" placeholder="비워 두면 노래의 핵심 부분을 골라 설명해요" autocomplete="off"></label>
+        </div>
+        <div class="row" style="margin-top:14px;justify-content:space-between">
+          <div class="row"><button class="btn solid" type="submit" id="goBtn">해석하기</button><button class="btn" type="button" id="stopBtn" hidden>멈추기</button></div>
+          <span id="aiState" class="ai-state"></span>
+        </div>
+      </form>
+      <div class="status" id="status" ${busy ? '' : 'hidden'}><span class="spin" aria-hidden="true"></span><span id="statusText">작품 정보를 찾고 있어요…</span></div>
+      <p class="err" id="formErr" ${lastError ? '' : 'hidden'}>${esc(lastError)}</p>
+      <div style="display:grid;gap:8px">
+        <span class="label">이렇게 써 보세요</span>
+        <div class="examples">
+          <button class="chip" type="button" data-ex="elemental">엘리멘탈 · fill my father's shoes</button>
+          <button class="chip" type="button" data-ex="swift">Taylor Swift · Shake It Off</button>
+          <button class="chip" type="button" data-ex="demo">예시 결과 바로 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel pad side-card" aria-labelledby="hQuiz">
+      <h2 id="hQuiz">퀴즈 <a class="link small" href="#quiz">열기</a></h2>
+      <div id="quizSide"></div>
+    </section>
+  </div>`;
+  renderAiState($('#aiState'));
+  v.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; lastError = ''; renderHome(); });
+  v.querySelector('.examples').onclick = e => {
+    const b = e.target.closest('[data-ex]'); if (!b) return;
+    if (b.dataset.ex === 'demo') { current = JSON.parse(JSON.stringify(EXAMPLE)); go('result'); return; }
+    if (b.dataset.ex === 'elemental') { tab = 'movie'; renderHome(); $('#fTitle').value = '엘리멘탈 (Elemental)'; $('#fLine').value = "I've been trying to fill my father's shoes, but I never asked what I wanted to do."; }
+    if (b.dataset.ex === 'swift') { tab = 'song'; renderHome(); $('#fArtist').value = 'Taylor Swift'; $('#fSong').value = 'Shake It Off'; }
+  };
+  $('#searchForm').onsubmit = onSearch;
+  $('#stopBtn').onclick = () => busy && busy.ctl.abort();
+  if (busy) { $('#goBtn').disabled = true; $('#stopBtn').hidden = false; }
+  refreshHomeSide();
+}
+function refreshHomeSide(){
+  const ms = $('#miniScenes');
+  if (ms) ms.innerHTML = playable().slice(0, 4).map(s => `<button class="mini" type="button" data-scene="${s.id}">${thumb(s)}<span><b>${esc(s.title)}</b><small>${esc(s.tag)}</small></span></button>`).join('');
+  if (ms) ms.onclick = e => { const b = e.target.closest('[data-scene]'); if (b) { openScene(b.dataset.scene); } };
+  const qs = $('#quizSide'); if (!qs) return;
+  const pool = quizPool(), analyses = Store.list('analysis');
+  qs.innerHTML = `<div class="row" style="align-items:flex-end;gap:12px"><span class="big-num">${pool.length}</span><span class="muted small" style="padding-bottom:6px">개 표현이 퀴즈에 들어가요</span></div>
+    ${pool.length ? `<button class="btn mark" type="button" id="startQuiz">퀴즈 시작</button>` : `<p class="empty">해석 결과나 영상에서 ☆ 저장한 표현이 여기 모여 퀴즈가 돼요.</p>`}
+    <div style="display:grid;gap:4px"><span class="label">최근 저장한 표현</span>
+      <ul class="saved-list">${Store.list('expr').slice(0, 4).map(i => `<li><span><b>${esc(i.expr)}</b> <span class="muted small">${esc(i.meaning)}</span></span></li>`).join('') || '<li class="empty">아직 없어요</li>'}</ul></div>
+    <div style="display:grid;gap:4px"><span class="label">저장한 해석</span>
+      <ul class="saved-list">${analyses.slice(0, 3).map(a => `<li><button class="open" type="button" data-open="${esc(a.id)}"><b>${esc(a.title)}</b><br><span class="muted small">${a.mode === 'song' ? '노래' : '영화'}</span></button></li>`).join('') || '<li class="empty">아직 없어요</li>'}</ul></div>`;
+  const sq = $('#startQuiz'); if (sq) sq.onclick = () => { Q.auto = true; go('quiz'); };
+  qs.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openSaved(b.dataset.open));
+}
+
+async function onSearch(e){
+  e.preventDefault();
+  lastError = '';
+  const err = m => { lastError = m; const el = $('#formErr'); el.textContent = m; el.hidden = !m; };
+  let q;
+  if (tab === 'movie') {
+    q = { title: $('#fTitle').value.trim(), line: $('#fLine').value.trim() };
+    if (!q.title || !q.line) return err('영화 제목과 대사를 모두 적어 주세요.');
+  } else {
+    q = { artist: $('#fArtist').value.trim(), song: $('#fSong').value.trim(), part: $('#fPart').value.trim() };
+    if (!q.artist || !q.song) return err('가수와 노래 제목을 모두 적어 주세요.');
+  }
+  err('');
+  const mode = tab;
+  busy = { ctl: new AbortController() };
+  $('#goBtn').disabled = true; $('#stopBtn').hidden = false; $('#status').hidden = false;
+  $('#statusText').textContent = mode === 'movie' ? '영화 정보를 찾고 대사를 해석하고 있어요… 30초 정도 걸려요.' : '노래 배경을 찾고 가사를 해석하고 있어요… 30초 정도 걸려요.';
+  try {
+    const raw = await askAI(mode, q, { signal: busy.ctl.signal });
+    busy = null;
+    current = { mode, query: q, result: fixResult(mode, raw) };
+    go('result');
+  } catch (ex) {
+    busy = null;
+    if (route() !== 'home') return;
+    $('#goBtn').disabled = false; $('#stopBtn').hidden = true; $('#status').hidden = true;
+    if (ex && ex.code === 'cancelled') return;
+    err(ERR[ex && ex.code] || ((ex && ex.message) ? '해석 중 문제가 생겼어요: ' + ex.message : '해석 중 문제가 생겼어요. 다시 시도해 주세요.'));
+  }
+}
+
+/* ============ 해석 결과 ============ */
+let selExpr = 0;
+function renderResult(){
+  const v = $('#view');
+  if (!current) { go('home'); return; }
+  const { mode, query: q, result: r } = current;
+  selExpr = Math.min(selExpr, Math.max(0, r.expressions.length - 1));
+  const conf = { high:'확신 높음', medium:'확신 보통', low:'확신 낮음' }[r.confidence] || '';
+  const head = mode === 'movie'
+    ? `<p class="quote">${esc(q.line)}</p>`
+    : `${q.part ? `<p class="quote">${esc(q.part)}</p>` : ''}`;
+  const left = mode === 'movie' ? `
+    <section class="panel pad" aria-labelledby="rCtx">
+      <h2 id="rCtx">어떤 장면에서 나온 말일까</h2>
+      <div class="meaning">${esc(r.context.meaning || '')}</div>
+      <dl class="kv">
+        ${r.context.speaker ? `<dt>누가</dt><dd>${esc(r.context.speaker)}</dd>` : ''}
+        ${r.context.tone ? `<dt>말투</dt><dd>${esc(r.context.tone)}</dd>` : ''}
+      </dl>
+      ${r.context.scene ? `<p>${esc(r.context.scene)}</p>` : ''}
+      ${r.context.known === false ? `<p class="note">이 대사가 나오는 장면은 확실하지 않아서, 대사 자체의 의미 위주로 설명했어요.</p>` : ''}
+      ${r.context.note ? `<p class="note">${esc(r.context.note)}</p>` : ''}
+    </section>` : `
+    <section class="panel pad" aria-labelledby="rBg">
+      <h2 id="rBg">이 노래가 나온 배경</h2>
+      ${r.background.confirmed ? `<div style="display:grid;gap:4px"><span class="label">가수가 직접 밝힌 이야기</span><p>${esc(r.background.confirmed)}</p></div>` : ''}
+      ${r.background.interpretation ? `<div style="display:grid;gap:4px"><span class="label">평론가·팬들의 해석</span><p>${esc(r.background.interpretation)}</p></div>` : ''}
+      ${r.overall ? `<div style="display:grid;gap:4px"><span class="label">노래가 말하려는 것</span><div class="meaning">${esc(r.overall)}</div></div>` : ''}
+      ${r.hidden_meaning ? `<div style="display:grid;gap:4px"><span class="label">숨은 의미</span><p>${esc(r.hidden_meaning)}</p></div>` : ''}
+    </section>
+    ${r.parts.length ? `<section class="panel pad" aria-labelledby="rParts">
+      <h2 id="rParts">구절별 해석</h2>
+      <p class="note">가사는 저작권 때문에 짧게만 짚고, 전체 가사는 공식 가사 페이지나 영상 자막으로 확인하세요.</p>
+      <div class="parts">${r.parts.map(p => `<article class="part">
+        ${p.ref ? `<span class="ref">“${esc(p.ref)}”</span>` : ''}
+        <p>${esc(p.meaning || '')}</p>
+        ${p.why ? `<p class="muted small"><b>이렇게 쓴 이유</b> · ${esc(p.why)}</p>` : ''}
+        ${p.devices.map(d => `<div class="dev"><span><span class="tag">${esc(d.type || '표현')}</span> <b>${esc(d.expr || '')}</b></span><span>${esc(d.explain || '')}</span></div>`).join('')}
+      </article>`).join('')}</div>
+    </section>` : ''}`;
+
+  v.innerHTML = `<div style="display:grid;gap:20px">
+    <div class="row" style="justify-content:space-between">
+      <a class="link" href="#home">← 다른 장면 찾기</a>
+      <div class="row">
+        ${current.example ? '<span class="tag">예시 결과</span>' : ''}
+        <button class="btn" type="button" id="saveAnalysis"></button>
+      </div>
+    </div>
+    <section class="panel pad work">
+      <div class="row"><span class="tag">${mode === 'movie' ? '영화' : '노래'}</span>${r.work.year ? `<span class="tag">${esc(r.work.year)}</span>` : ''}${conf ? `<span class="conf ${esc(r.confidence)}">${conf}</span>` : ''}</div>
+      <h1>${esc(r.work.title || q.title || q.song)}</h1>
+      ${r.work.by ? `<p class="muted">${esc(r.work.by)}</p>` : ''}
+      ${head}
+      ${r.work.summary ? `<p>${esc(r.work.summary)}</p>` : ''}
+      ${r.caveat ? `<p class="note">${esc(r.caveat)}</p>` : ''}
+    </section>
+    <div class="result">
+      <div class="col">${left}
+        <section class="panel pad" aria-labelledby="rMedia">
+          <h2 id="rMedia">다른 장면에서도 이렇게 쓰여요</h2>
+          <div id="libMatch"></div>
+          <div class="media" id="mediaList"></div>
+        </section>
+      </div>
+      <div class="col">
+        <section class="panel pad" aria-labelledby="rExpr">
+          <h2 id="rExpr">표현 골라서 배우기</h2>
+          ${r.expressions.length ? `<div class="expr-chips" id="exprChips">${r.expressions.map((x, i) => `<button class="chip" type="button" data-i="${i}" aria-pressed="${i === selExpr}">${esc(x.expr)}</button>`).join('')}</div>
+          <div class="expr-detail" id="exprDetail"></div>` : '<p class="empty">따로 짚을 표현을 찾지 못했어요.</p>'}
+        </section>
+      </div>
+    </div>
+  </div>`;
+  $('#saveAnalysis').onclick = toggleSaveAnalysis;
+  const chips = $('#exprChips');
+  if (chips) chips.onclick = e => { const b = e.target.closest('[data-i]'); if (!b) return; selExpr = +b.dataset.i; chips.querySelectorAll('[data-i]').forEach(c => c.setAttribute('aria-pressed', c === b)); renderExprDetail(); };
+  renderExprDetail(); renderMedia(); refreshSaveStates();
+}
+function renderExprDetail(){
+  const box = $('#exprDetail'); if (!box) return;
+  const e = current.result.expressions[selExpr]; if (!e) return;
+  const q = cleanExpr(e.expr);
+  box.innerHTML = `
+    <div class="row"><span class="tag">${esc(e.type || '표현')}</span></div>
+    <p class="expr-title"><span>${esc(e.expr)}</span></p>
+    <div style="display:grid;gap:4px"><span class="label">이 장면에서의 뜻</span><div class="meaning">${esc(e.meaning_here || '')}</div></div>
+    ${e.all_meanings.length ? `<div style="display:grid;gap:6px"><span class="label">이 표현의 모든 뜻</span>
+      <ol class="means">${e.all_meanings.map(m => `<li class="${m.here ? 'here' : ''}"><span><b>${esc(m.meaning)}</b>${m.here ? ' <span class="tag">이 장면</span>' : ''}</span>${m.ex_en ? `<span class="ex">${highlight(m.ex_en, e.expr)}</span>` : ''}${m.ex_ko ? `<span class="ko">${esc(m.ex_ko)}</span>` : ''}</li>`).join('')}</ol></div>` : ''}
+    ${e.note ? `<p class="note">${esc(e.note)}</p>` : ''}
+    <div class="row"><button class="btn" type="button" id="saveExprBtn"></button></div>
+    <div style="display:grid;gap:6px"><span class="label">실제 영상에서 이 표현 듣기</span>
+      <div class="row">
+        <a class="btn" target="_blank" rel="noopener" href="${playphrase(q)}">🎬 영화·드라마 클립 ↗</a>
+        <a class="btn" target="_blank" rel="noopener" href="${youglish(q)}">▶ YouTube 속 실제 발화 ↗</a>
+      </div>
+      <p class="note">PlayPhrase는 영화·드라마 장면을, YouGlish는 이 표현이 나오는 YouTube 영상을 그 순간부터 보여줘요.</p>
+    </div>`;
+  $('#saveExprBtn').onclick = async () => {
+    const id = exprId(e);
+    if (Store.has(id)) await Store.remove(id); else await saveExpr(e, sourceLabel());
+    refreshSaveStates();
+  };
+  refreshSaveStates();
+}
+function sourceLabel(){ const r = current.result, q = current.query; return (current.mode === 'movie' ? '영화 ' : '노래 ') + (r.work.title || q.title || q.song || ''); }
+function matchScenes(exprs){
+  const keys = exprs.map(e => norm(cleanExpr(e.expr || e))).filter(k => k.length > 2);
+  return playable().filter(s => { const k = norm(s.expr); return keys.some(x => x.includes(k) || k.includes(x)); });
+}
+function renderMedia(){
+  const r = current.result;
+  const lm = $('#libMatch'), ml = $('#mediaList');
+  const matches = matchScenes(r.expressions);
+  lm.innerHTML = matches.length ? `<div style="display:grid;gap:8px"><span class="label">앱 안 영상 레슨</span>${matches.map(s => `<button class="mini" type="button" data-scene="${s.id}">${thumb(s)}<span><b>${esc(s.title)}</b><small>${esc(s.tag)} · ${esc(s.expr)}</small></span></button>`).join('')}</div>` : '';
+  lm.onclick = e => { const b = e.target.closest('[data-scene]'); if (b) openScene(b.dataset.scene); };
+  const items = r.related_media;
+  ml.innerHTML = (items.length ? `<span class="label">AI가 찾은 같은 의미의 사례</span>` : '') + items.map((m, i) => {
+    const id = ytId(m.youtube_url);
+    const q = [m.title, m.expr || (r.expressions[0] && cleanExpr(r.expressions[0].expr))].filter(Boolean).join(' ');
+    return `<article class="media-item" data-mi="${i}">
+      <div class="head"><span class="tag">${esc(m.type || '사례')}</span><b>${esc(m.title || '')}</b>${m.expr ? `<span class="muted small">· ${esc(m.expr)}</span>` : ''}</div>
+      ${m.situation ? `<p class="small">${esc(m.situation)}</p>` : ''}
+      <div class="row" data-acts="${i}">
+        ${id ? `<span class="note" data-wait="${id}">영상 확인 중…</span>` : ''}
+        <a class="btn" target="_blank" rel="noopener" href="${ytSearch(q)}">YouTube에서 찾기 ↗</a>
+      </div>
+    </article>`;
+  }).join('') + (items.length ? `<p class="note">AI가 기억하거나 검색한 사례라 틀릴 수 있어요. 앱에서 재생되는 영상은 실제로 있는지 확인을 마친 것만 보여줘요.</p>` : (matches.length ? '' : '<p class="empty">다른 사례를 찾지 못했어요. 위 표현 카드의 실제 영상 듣기 링크를 써 보세요.</p>'));
+  const ids = items.map(m => ytId(m.youtube_url)).filter(Boolean);
+  if (ids.length) verifyIds(ids).then(() => {
+    items.forEach((m, i) => {
+      const id = ytId(m.youtube_url); if (!id) return;
+      const w = ml.querySelector(`[data-wait="${id}"]`); if (!w) return;
+      const ok = verified[id] && verified[id].ok && !broken.has(id);
+      if (ok) {
+        const b = document.createElement('button'); b.className = 'btn mark'; b.type = 'button'; b.textContent = '▶ 앱에서 보기';
+        b.onclick = () => openTempScene(m, id, verified[id]);
+        w.replaceWith(b);
+      } else w.remove();
+    });
+  });
+}
+async function toggleSaveAnalysis(){
+  const id = current.savedId || ('a-' + hash(JSON.stringify(current.query) + current.mode));
+  if (Store.has(id)) { await Store.remove(id); current.savedId = null; }
+  else {
+    const title = current.result.work.title || current.query.title || current.query.song || '해석';
+    await Store.put(id, { kind:'analysis', mode: current.mode, title, query: current.query, result: current.result });
+    current.savedId = id;
+    const all = Store.list('analysis'); for (const old of all.slice(40)) Store.remove(old.id);
+  }
+  refreshSaveStates();
+}
+function refreshSaveStates(){
+  const sa = $('#saveAnalysis');
+  if (sa && current) {
+    const id = current.savedId || ('a-' + hash(JSON.stringify(current.query) + current.mode));
+    const on = Store.has(id); sa.textContent = on ? '★ 해석 저장됨' : '☆ 이 해석 저장'; sa.setAttribute('aria-pressed', on);
+  }
+  const se = $('#saveExprBtn');
+  if (se && current) { const e = current.result.expressions[selExpr]; const on = e && Store.has(exprId(e)); se.textContent = on ? '★ 표현장에 저장됨' : '☆ 표현장에 저장 (퀴즈에 추가)'; se.setAttribute('aria-pressed', !!on); }
+}
+function openSaved(id){
+  const a = Store.get(id); if (!a) return;
+  current = { mode: a.mode, query: a.query, result: fixResult(a.mode, a.result), savedId: id };
+  selExpr = 0; go('result');
+}
+
+/* ============ 영상으로 배우기 ============ */
+let scene = null, temp = null;   // temp: AI 사례에서 연 영상
+let player = null, ytReady = false, ytBlocked = false, ytLoading = false, loop = false, rate = 1, ticker = null;
+function loadYT(){
+  if (ytLoading || ytReady) return; ytLoading = true;
+  window.onYouTubeIframeAPIReady = () => { ytReady = true; ytBlocked = false; if (route() === 'learn') mountPlayer(); };
+  const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api';
+  s.onerror = () => { ytBlocked = true; if (route() === 'learn') renderStage(); };
+  document.head.appendChild(s);
+  setTimeout(() => { if (!ytReady) { ytBlocked = true; if (route() === 'learn') renderStage(); } }, 6000);
+}
+function openScene(id){ scene = SCENES.find(s => s.id === id) || null; temp = null; go('learn'); }
+function openTempScene(m, id, info){
+  temp = { id:'t-' + id, videoId:id, start:0, end:0, tag: m.type || '사례', who: (info && info.author) || '', title: m.title || (info && info.title) || '영상', poster:['#2B3A67','#0E1322','70%'],
+    expr: m.expr || '', meaning:'', keyLine: m.expr || m.title || '', keyKo:'', note: m.situation || '', examples:[], temp:true };
+  scene = temp; go('learn');
+}
+function stopPlayer(){ try { player && player.pauseVideo && player.pauseVideo(); } catch (e) {} clearInterval(ticker); ticker = null; try { speechSynthesis.cancel(); } catch (e) {} }
+function renderLearn(){
+  const v = $('#view');
+  const list = playable();
+  if (!scene || (broken.has(scene.videoId))) scene = list[0] || null;
+  const checkMsg = { pending:'영상 재생 가능 여부를 확인하고 있어요…', done:`재생 가능한지 확인한 공식 채널 영상 ${list.length}개예요.`, unavailable:'이 화면에서는 영상 검사를 할 수 없어요. 배포된 사이트에서 열면 재생 가능한 영상만 남겨요.' }[libCheck];
+  const hidden = SCENES.length - list.length;
+  v.innerHTML = `<div style="display:grid;gap:20px">
+    <div class="row" style="justify-content:space-between"><h2>영상으로 배우기</h2><span class="note">${esc(checkMsg)}${hidden ? ` 재생할 수 없는 영상 ${hidden}개는 숨겼어요.` : ''}</span></div>
+    ${scene ? `<div class="learn">
+      <section class="stage" aria-label="영상">
+        <div class="screen"><div id="yt"></div><div class="poster" id="poster" hidden></div></div>
+        <div class="caption" id="caption"></div>
+        <div class="controls">
+          <button class="cbtn primary" id="playBtn" type="button">▶ 구간 재생</button>
+          <button class="cbtn" id="restartBtn" type="button">↺ 처음부터</button>
+          <button class="cbtn" id="loopBtn" type="button" aria-pressed="${loop}">구간 반복</button>
+          <button class="cbtn" id="rateBtn" type="button">속도 ${rate}×</button>
+          <span class="sp"></span><span class="time" id="time"></span>
+        </div>
+      </section>
+      <section class="panel pad" aria-labelledby="sExpr" id="sceneCard"></section>
+    </div>` : '<p class="empty">재생할 수 있는 영상이 없어요.</p>'}
+    <section style="display:grid;gap:12px" aria-labelledby="libH">
+      <h3 id="libH">장면 목록</h3>
+      <div class="lib" id="lib">${list.map(s => `<button class="lib-card" type="button" data-scene="${s.id}" aria-current="${scene && scene.id === s.id}">${thumb(s)}<b>${esc(s.title)}</b><small>${esc(s.tag)} · ${esc(s.expr)}</small></button>`).join('')}</div>
+    </section>
+  </div>`;
+  $('#lib').onclick = e => { const b = e.target.closest('[data-scene]'); if (b) { scene = SCENES.find(s => s.id === b.dataset.scene); temp = null; renderLearn(); window.scrollTo({ top: 0, behavior: 'smooth' }); } };
+  if (!scene) return;
+  renderSceneCard(); renderStage();
+  $('#playBtn').onclick = playSegment;
+  $('#restartBtn').onclick = () => playSegment(true);
+  $('#loopBtn').onclick = () => { loop = !loop; $('#loopBtn').setAttribute('aria-pressed', loop); };
+  $('#rateBtn').onclick = () => { rate = rate === 1 ? 0.75 : rate === 0.75 ? 0.5 : 1; $('#rateBtn').textContent = `속도 ${rate}×`; try { player && player.setPlaybackRate(rate); } catch (e) {} };
+  loadYT(); if (ytReady) mountPlayer();
+}
+function renderSceneCard(){
+  const s = scene, c = $('#sceneCard'); if (!c) return;
+  const q = cleanExpr(s.expr || s.keyLine);
+  c.innerHTML = `
+    <div class="row"><span class="tag">${esc(s.tag)}</span>${s.temp ? '<span class="tag">AI가 찾은 사례</span>' : ''}</div>
+    <p class="expr-title" id="sExpr"><span>${esc(s.expr || s.title)}</span></p>
+    ${s.meaning ? `<div class="meaning">${esc(s.meaning)}</div>` : ''}
+    ${s.note ? `<p class="muted">${esc(s.note)}</p>` : ''}
+    ${(s.examples || []).length ? `<ol class="means">${s.examples.map(([en, ko]) => `<li><span class="ex">${highlight(en, s.expr)}</span><span class="ko">${esc(ko)}</span></li>`).join('')}</ol>` : ''}
+    ${s.expr ? `<div class="row"><button class="btn" type="button" id="sceneSave"></button></div>` : ''}
+    ${q ? `<div class="row"><a class="btn" target="_blank" rel="noopener" href="${playphrase(q)}">🎬 다른 영화 장면 ↗</a><a class="btn" target="_blank" rel="noopener" href="${youglish(q)}">▶ 다른 YouTube 발화 ↗</a></div>` : ''}
+    <p class="note">${esc(s.who || '')}${s.end ? ` · 구간 ${fmt(s.start)}–${fmt(s.end)} (대략적인 위치예요)` : ''}</p>`;
+  const sb = $('#sceneSave'); if (sb) sb.onclick = async () => {
+    const id = exprId(s);
+    if (Store.has(id)) await Store.remove(id);
+    else await saveExpr({ expr: s.expr, meaning: s.meaning, examples: s.examples, all_meanings: s.meaning ? [{ meaning: s.meaning, ex_en: (s.examples[0] || [])[0], ex_ko: (s.examples[0] || [])[1], here: true }] : [] }, '영상 ' + s.title);
+    refreshSceneSave();
+  };
+  refreshSceneSave();
+}
+function refreshSceneSave(){ const b = $('#sceneSave'); if (!b || !scene) return; const on = Store.has(exprId(scene)); b.textContent = on ? '★ 표현장에 저장됨' : '☆ 표현장에 저장 (퀴즈에 추가)'; b.setAttribute('aria-pressed', on); }
+function renderStage(){
+  const s = scene; if (!s || !$('#caption')) return;
+  $('#caption').innerHTML = `<div class="cap-en">“${highlight(s.keyLine || s.title, s.expr)}”</div>${s.keyKo ? `<div class="cap-ko">${esc(s.keyKo)}</div>` : ''}`;
+  const p = $('#poster');
+  if (ytBlocked || !ytReady) {
+    const [p1, p2, sx] = s.poster || ['#2B3A67', '#0E1322', '70%'];
+    p.hidden = false; p.style.cssText = `--p1:${p1};--p2:${p2};--sx:${sx}`;
+    const link = `https://www.youtube.com/watch?v=${encodeURIComponent(s.videoId)}${s.start ? `&t=${Math.floor(s.start)}s` : ''}`;
+    p.innerHTML = `<div class="k">${esc(s.tag)}</div><p class="q">${esc(s.title)}</p>
+      <div class="f">${ytBlocked ? '<span>이 미리보기는 YouTube 재생을 막아요. 배포된 사이트에서는 여기서 바로 재생돼요.</span>' : '<span>YouTube 플레이어를 불러오는 중…</span>'}<a href="${link}" target="_blank" rel="noopener">YouTube에서 이 구간 보기 ↗</a></div>`;
+    $('#time').textContent = s.end ? `${fmt(s.start)}–${fmt(s.end)}` : '';
+  } else p.hidden = true;
+}
+function mountPlayer(){
+  if (!scene || !$('#yt')) return;
+  const box = $('#yt');
+  if (!player || !document.body.contains(player.getIframe && player.getIframe())) {
+    player = new YT.Player(box, {
+      playerVars:{ playsinline:1, rel:0, controls:1, cc_load_policy:1, cc_lang_pref:'en', hl:'ko' },
+      events:{
+        onReady: () => { cueScene(false); renderStage(); },
+        onStateChange: e => {
+          const playing = e.data === YT.PlayerState.PLAYING;
+          const b = $('#playBtn'); if (b) b.textContent = playing ? '❚❚ 일시정지' : '▶ 구간 재생';
+          if (e.data === YT.PlayerState.ENDED && loop) playSegment(true);
+        },
+        onError: e => {
+          // 100: 없는 영상, 101/150: 퍼가기 금지 → 목록에서 빼기
+          const id = scene && scene.videoId; if (id) markBroken(id);
+          const p = $('#poster'); if (p) { p.hidden = false; p.innerHTML = `<div class="k">재생할 수 없는 영상</div><p class="q">이 영상은 앱에서 재생할 수 없어 목록에서 뺐어요</p><div class="f"><span>다른 장면을 골라 주세요.</span></div>`; }
+          setTimeout(() => { scene = null; if (route() === 'learn') renderLearn(); }, 2500);
+        }
+      }
+    });
+  } else cueScene(false);
+  clearInterval(ticker);
+  ticker = setInterval(() => {
+    if (!player || !player.getCurrentTime || !scene) return;
+    const t = player.getCurrentTime(); const el = $('#time');
+    if (el) el.textContent = fmt(t) + (scene.end ? ` · 구간 ${fmt(scene.start)}–${fmt(scene.end)}` : '');
+  }, 300);
+}
+function cueScene(auto){
+  if (!player || !player.cueVideoById || !scene) return;
+  const o = { videoId: scene.videoId, startSeconds: scene.start || 0 }; if (scene.end) o.endSeconds = scene.end;
+  auto ? player.loadVideoById(o) : player.cueVideoById(o);
+  try { player.setPlaybackRate(rate); } catch (e) {}
+}
+function playSegment(restart){
+  if (ytReady && player && player.getPlayerState) {
+    const st = player.getPlayerState();
+    if (restart === true) { cueScene(true); return; }
+    if (st === YT.PlayerState.PLAYING) player.pauseVideo(); else if (st === YT.PlayerState.CUED || st === YT.PlayerState.ENDED) cueScene(true); else player.playVideo();
+    return;
+  }
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(scene.keyLine || scene.expr); u.lang = 'en-US'; u.rate = rate; speechSynthesis.speak(u); } catch (e) {}
+}
+
+/* ============ 퀴즈 ============ */
+function quizPool(){
+  const map = new Map();
+  for (const i of Store.list('expr')) map.set(norm(i.expr), { expr: i.expr, meaning: i.meaning, ex_en: i.ex_en, ex_ko: i.ex_ko, source: i.source });
+  for (const a of Store.list('analysis')) for (const e of ((a.result && a.result.expressions) || [])) {
+    const k = norm(e.expr); if (!k || map.has(k)) continue;
+    const m = (e.all_meanings || []).find(x => x.here) || (e.all_meanings || [])[0] || {};
+    map.set(k, { expr: e.expr, meaning: e.meaning_here || m.meaning || '', ex_en: m.ex_en || '', ex_ko: m.ex_ko || '', source: a.title });
+  }
+  return [...map.values()].filter(x => x.expr && x.meaning);
+}
+const Q = { active:false, list:[], i:0, score:0, answered:false, wrong:[] };
+function buildQuestions(pool){
+  const others = (field, not) => shuffle(pool.concat(FALLBACK_POOL.map(([expr, meaning]) => ({ expr, meaning }))).filter(x => norm(x.expr) !== norm(not.expr)).map(x => x[field]).filter((v, i, a) => v && a.indexOf(v) === i)).slice(0, 3);
+  const qs = [];
+  for (const it of shuffle(pool)) {
+    const types = ['meaning', 'expr'];
+    const blankRx = it.ex_en && new RegExp(cleanExpr(it.expr).split(' ').filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+'), 'i');
+    if (blankRx && blankRx.test(it.ex_en)) types.push('blank');
+    const t = types[Math.floor(Math.random() * types.length)];
+    let q;
+    if (t === 'meaning') { const opts = shuffle([it.meaning, ...others('meaning', it)]); q = { html:`‘<b>${esc(it.expr)}</b>’의 뜻은?`, opts, answer: opts.indexOf(it.meaning) }; }
+    else if (t === 'expr') { const opts = shuffle([it.expr, ...others('expr', it)]); q = { html:`‘${esc(it.meaning)}’을(를) 영어로 하면?`, opts, answer: opts.indexOf(it.expr) }; }
+    else { const opts = shuffle([it.expr, ...others('expr', it)]); q = { html: esc(it.ex_en).replace(new RegExp(blankRx.source.replace(/'/g, "(?:&#39;|')"), 'i'), '<span class="blank">&nbsp;</span>') + (it.ex_ko ? `<div class="muted small" style="margin-top:6px">${esc(it.ex_ko)}</div>` : ''), opts, answer: opts.indexOf(it.expr) }; }
+    q.item = it; qs.push(q);
+    if (qs.length >= 10) break;
+  }
+  return qs;
+}
+function startQuiz(){
+  const pool = quizPool(); if (!pool.length) return;
+  Object.assign(Q, { active:true, list: buildQuestions(pool), i:0, score:0, answered:false, wrong:[] });
+  renderQuiz();
+}
+function renderQuiz(){
+  const v = $('#view');
+  const pool = quizPool();
+  if (Q.auto) { Q.auto = false; if (pool.length) { Object.assign(Q, { active:true, list: buildQuestions(pool), i:0, score:0, answered:false, wrong:[] }); } }
+  const side = `<section class="panel pad" aria-labelledby="bookH">
+      <h2 id="bookH">내 표현장</h2>
+      <ul class="saved-list">${Store.list('expr').map(i => `<li><span><b>${esc(i.expr)}</b><br><span class="muted small">${esc(i.meaning)}${i.source ? ' · ' + esc(i.source) : ''}</span></span><button class="x" type="button" data-del="${esc(i.id)}" aria-label="${esc(i.expr)} 삭제">삭제</button></li>`).join('') || '<li class="empty">☆ 저장한 표현이 여기 모여요.</li>'}</ul>
+    </section>
+    <section class="panel pad" aria-labelledby="anaH">
+      <h2 id="anaH">저장한 해석</h2>
+      <p class="note">저장한 해석 속 표현도 퀴즈에 들어가요.</p>
+      <ul class="saved-list">${Store.list('analysis').map(a => `<li><button class="open" type="button" data-open="${esc(a.id)}"><b>${esc(a.title)}</b><br><span class="muted small">${a.mode === 'song' ? '노래' : '영화'} · 표현 ${((a.result && a.result.expressions) || []).length}개</span></button><button class="x" type="button" data-del="${esc(a.id)}" aria-label="${esc(a.title)} 삭제">삭제</button></li>`).join('') || '<li class="empty">해석 결과에서 ☆ 이 해석 저장을 누르면 여기 모여요.</li>'}</ul>
+    </section>
+    <p class="note">이 브라우저에 저장돼요. 다른 기기에서는 이어지지 않아요.</p>`;
+  let main;
+  if (!pool.length) main = `<section class="panel pad"><h2>퀴즈</h2><p class="empty">아직 저장한 표현이 없어요. 홈에서 영화 대사나 노래를 해석하거나, 영상 레슨에서 ☆ 표현장에 저장을 누르면 그 표현들로 퀴즈를 만들어요.</p><div class="row"><a class="btn solid" href="#home">해석하러 가기</a><a class="btn" href="#learn">영상으로 배우기</a></div></section>`;
+  else if (!Q.active) main = `<section class="panel pad"><h2>내가 저장한 표현으로 퀴즈</h2><p>저장한 표현 <b>${pool.length}개</b>로 최대 10문제를 만들어요. 뜻 고르기, 영어로 말하기, 빈칸 채우기가 섞여 나와요.</p><div class="row"><button class="btn mark" type="button" id="qStart">퀴즈 시작</button></div></section>`;
+  else if (Q.i >= Q.list.length) main = `<section class="panel pad"><span class="label">결과</span><p class="score">${Q.score} / ${Q.list.length}</p>
+      ${Q.wrong.length ? `<h3>다시 볼 표현</h3><ol class="means">${Q.wrong.map(w => `<li><b>${esc(w.expr)}</b><span>${esc(w.meaning)}</span>${w.ex_en ? `<span class="ex">${highlight(w.ex_en, w.expr)}</span>` : ''}${w.source ? `<span class="ko">${esc(w.source)}</span>` : ''}</li>`).join('')}</ol>` : '<p>모두 맞혔어요!</p>'}
+      <div class="row"><button class="btn mark" type="button" id="qStart">다시 풀기</button></div></section>`;
+  else {
+    const q = Q.list[Q.i];
+    main = `<section class="panel pad"><div class="row" style="justify-content:space-between"><span class="label">${Q.i + 1} / ${Q.list.length}</span><span class="note">${esc(q.item.source || '')}</span></div>
+      <div class="qprog"><i style="width:${(Q.i / Q.list.length) * 100}%"></i></div>
+      <div class="qq">${q.html}</div>
+      <div class="choices" id="choices">${q.opts.map((o, i) => `<button class="choice" type="button" data-i="${i}">${esc(o)}</button>`).join('')}</div>
+      <p class="fb" id="fb" hidden></p>
+      <div class="row"><button class="btn solid" type="button" id="qNext" hidden>${Q.i + 1 === Q.list.length ? '결과 보기' : '다음 문제'}</button></div></section>`;
+  }
+  v.innerHTML = `<div class="quizwrap"><div class="col">${main}</div><div class="col">${side}</div></div>`;
+  const st = $('#qStart'); if (st) st.onclick = startQuiz;
+  v.querySelectorAll('[data-del]').forEach(b => b.onclick = () => Store.remove(b.dataset.del));
+  v.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openSaved(b.dataset.open));
+  const ch = $('#choices');
+  if (ch) ch.onclick = e => {
+    const b = e.target.closest('.choice'); if (!b || Q.answered) return;
+    const q = Q.list[Q.i], pick = +b.dataset.i; Q.answered = true;
+    [...ch.children].forEach((c, i) => { c.disabled = true; if (i === q.answer) c.classList.add('right'); else if (i === pick) c.classList.add('wrong'); });
+    const ok = pick === q.answer; if (ok) Q.score++; else Q.wrong.push(q.item);
+    const fb = $('#fb'); fb.hidden = false; fb.className = 'fb ' + (ok ? 'good' : 'bad');
+    fb.textContent = ok ? '정답이에요!' : `정답: ${q.opts[q.answer]}`;
+    $('#qNext').hidden = false; $('#qNext').focus();
+  };
+  const nx = $('#qNext'); if (nx) nx.onclick = () => { Q.i++; Q.answered = false; renderQuiz(); };
+}
+
+/* ============ 시작 ============ */
+document.addEventListener('error', e => { if (e.target && e.target.tagName === 'IMG') e.target.remove(); }, true);
+render();
+Store.init();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+
+</body>
+</html>

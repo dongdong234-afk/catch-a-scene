@@ -1,0 +1,11 @@
+{
+  "name": "Catch a Scene",
+  "short_name": "Catch a Scene",
+  "description": "영화 대사와 노래 속 영어 표현을 장면과 함께 배우는 앱",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3F4F7",
+  "theme_color": "#FFD23F",
+  "lang": "ko",
+  "icons": []
+}
